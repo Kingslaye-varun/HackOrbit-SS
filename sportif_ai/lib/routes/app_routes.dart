@@ -8,6 +8,7 @@ import 'package:sportif_ai/features/ai_dietician/presentation/hydration_tracker.
 import 'package:sportif_ai/features/ai_dietician/presentation/dietician_dashboard.dart';
 import 'package:sportif_ai/features/ai_dietician/presentation/meal_plan_screen.dart';
 import 'package:sportif_ai/features/profile_builder/presentation/profile_screen.dart';
+import 'package:sportif_ai/features/profile_builder/presentation/drill_history_screen.dart';
 import 'package:sportif_ai/features/chatbot/chatbot.dart';
 import 'package:sportif_ai/features/tournament_tracker/presentation/tournament-tracker.dart';
 import 'package:sportif_ai/features/Scout_players/scout_players.dart';
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String tournamentTracker = '/tournament-tracker';
   static const String scoutPlayers = '/scout-players';
   static const String aiCoach = '/ai-coach';
+  static const String drillHistory = '/drill-history';
 
   // Route map
   static Map<String, WidgetBuilder> getRoutes() {
@@ -47,6 +49,7 @@ class AppRoutes {
       tournamentTracker: (context) => const TournamentTrackerScreen(),
       scoutPlayers: (context) => const ScoutPlayersScreen(),
       aiCoach: (context) => const AiCoachScreen(),
+      drillHistory: (context) => const DrillHistoryScreen(),
     };
   }
 
@@ -101,6 +104,10 @@ class AppRoutes {
   
   static void navigateToAiCoach(BuildContext context) {
     Navigator.pushNamed(context, aiCoach);
+  }
+  
+  static void navigateToDrillHistory(BuildContext context) {
+    Navigator.pushNamed(context, drillHistory);
   }
   
   static void navigateToPlayerDetails(BuildContext context, Player player) {

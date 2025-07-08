@@ -1,10 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sportif_ai/routes/app_routes.dart';
 import 'package:sportif_ai/features/Scout_players/player_model.dart';
+import 'package:sportif_ai/features/Scout_players/player_service.dart';
+import 'package:sportif_ai/features/Scout_players/widgets/player_card.dart';
 
-class ScoutPlayersScreen extends StatelessWidget {
+class ScoutPlayersScreen extends StatefulWidget {
   const ScoutPlayersScreen({super.key});
+
+  @override
+  State<ScoutPlayersScreen> createState() => _ScoutPlayersScreenState();
+}
+
+class _ScoutPlayersScreenState extends State<ScoutPlayersScreen> {
+  final PlayerService _playerService = PlayerService();
+  List<Player> _players = [];
+  List<Player> _filteredPlayers = [];
+  bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedSport;
+  String? _selectedPosition;
+  double? _minRating;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlayers();
+  }
+
+  Future<void> _loadPlayers() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final players = await _playerService.fetchPlayers();
+      setState(() {
+        _players = players;
+        _filteredPlayers = players;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _players = players; // Fallback to sample data
+        _filteredPlayers = players;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading players: $e')),
+      );
+    }
+  }
+
+  void _filterPlayers() {
+    setState(() {
+      _filteredPlayers = _players.where((player) {
+        // Filter by search query
+        if (_searchQuery.isNotEmpty &&
+            !player.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+          return false;
+        }
+
+        // Filter by sport
+        if (_selectedSport != null && player.sport != _selectedSport) {
+          return false;
+        }
+
+        // Filter by position
+        if (_selectedPosition != null && player.position != _selectedPosition) {
+          return false;
+        }
+
+        // Filter by rating
+        if (_minRating != null && player.overallRating < _minRating!) {
+          return false;
+        }
+
+        return true;
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +93,10 @@ class ScoutPlayersScreen extends StatelessWidget {
               _showFilterDialog(context);
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadPlayers,
+          ),
         ],
       ),
       body: Padding(
@@ -28,12 +106,20 @@ class ScoutPlayersScreen extends StatelessWidget {
             _buildSearchBar(),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.builder(
-                itemCount: players.length,
-                itemBuilder: (context, index) {
-                  return _buildPlayerCard(players[index], context);
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredPlayers.isEmpty
+                      ? const Center(child: Text('No players found'))
+                      : ListView.builder(
+                          itemCount: _filteredPlayers.length,
+                          itemBuilder: (context, index) {
+                            return PlayerCard(
+                              player: _filteredPlayers[index],
+                              onTap: () => AppRoutes.navigateToPlayerDetails(
+                                  context, _filteredPlayers[index]),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
@@ -51,258 +137,121 @@ class ScoutPlayersScreen extends StatelessWidget {
         ),
         filled: true,
         fillColor: Colors.grey[100],
-      ),
-      onChanged: (value) {
-        // Implement search functionality
-      },
-    );
-  }
-
-  Widget _buildPlayerCard(Player player, BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          AppRoutes.navigateToPlayerDetails(context, player);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPlayerAvatar(player),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          player.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${player.sport} • ${player.position}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSkillRating(player.overallRating),
-                      ],
-                    ),
-                  ),
-                  _buildFavoriteButton(),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _buildPlayerAttributes(player),
-              if (player.certificates.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _buildCertificates(player.certificates),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlayerAvatar(Player player) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.grey[200],
-        image: player.imageUrl != null 
-            ? DecorationImage(
-                image: NetworkImage(player.imageUrl!),
-                fit: BoxFit.cover,
+        suffixIcon: _searchQuery.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  setState(() {
+                    _searchQuery = '';
+                  });
+                  _filterPlayers();
+                },
               )
             : null,
       ),
-      child: player.imageUrl == null
-          ? const Icon(Icons.person, size: 30, color: Colors.grey)
-          : null,
-    );
-  }
-
-  Widget _buildSkillRating(double rating) {
-    return Row(
-      children: [
-        _buildRatingStars(rating),
-        const SizedBox(width: 8),
-        Text(
-          rating.toStringAsFixed(1),
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRatingStars(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating.floor() ? Icons.star : Icons.star_border,
-          color: Colors.amber,
-          size: 20,
-        );
-      }),
-    );
-  }
-
-  Widget _buildFavoriteButton() {
-    return IconButton(
-      icon: const Icon(Icons.favorite_border),
-      color: Colors.grey,
-      onPressed: () {
-        // Toggle favorite status
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value;
+        });
+        _filterPlayers();
       },
     );
   }
 
-  Widget _buildPlayerAttributes(Player player) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _buildAttributeChip(
-          icon: FontAwesomeIcons.running,
-          label: 'Speed: ${player.attributes.speed}',
-          color: Colors.blue,
-        ),
-        _buildAttributeChip(
-          icon: FontAwesomeIcons.dumbbell,
-          label: 'Strength: ${player.attributes.strength}',
-          color: Colors.red,
-        ),
-        _buildAttributeChip(
-          icon: FontAwesomeIcons.brain,
-          label: 'IQ: ${player.attributes.iq}',
-          color: Colors.green,
-        ),
-        _buildAttributeChip(
-          icon: FontAwesomeIcons.handshake,
-          label: 'Teamwork: ${player.attributes.teamwork}',
-          color: Colors.purple,
-        ),
-        if (player.attributes.specialSkill != null)
-          _buildAttributeChip(
-            icon: FontAwesomeIcons.star,
-            label: player.attributes.specialSkill!,
-            color: Colors.amber,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildAttributeChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Chip(
-      backgroundColor: color.withOpacity(0.1),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-      avatar: Icon(icon, size: 14, color: color),
-      label: Text(
-        label,
-        style: TextStyle(
-          color: Colors.grey[800],
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCertificates(List<String> certificates) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Certificates:',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: certificates.map((cert) {
-            return Chip(
-              backgroundColor: Colors.grey[100],
-              label: Text(
-                cert,
-                style: const TextStyle(fontSize: 12),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
+  // Helper methods for the filter dialog are below
 
   void _showFilterDialog(BuildContext context) {
+    // Create temporary variables to hold filter state during dialog
+    String? tempSelectedSport = _selectedSport;
+    String? tempSelectedPosition = _selectedPosition;
+    double? tempMinRating = _minRating;
+
+    // Get unique sports and positions from available players
+    final sports = _players.map((p) => p.sport).toSet().toList();
+    final positions = _players.map((p) => p.position).toSet().toList();
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Filter Players'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                _buildFilterSection(
-                  title: 'Sport',
-                  options: const ['Football', 'Basketball', 'Tennis', 'Cricket', 'Volleyball'],
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Filter Players'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    _buildFilterSection(
+                      title: 'Sport',
+                      options: sports,
+                      selectedValue: tempSelectedSport,
+                      onSelected: (value) {
+                        setDialogState(() {
+                          tempSelectedSport = tempSelectedSport == value ? null : value;
+                        });
+                      },
+                    ),
+                    _buildFilterSection(
+                      title: 'Position',
+                      options: positions,
+                      selectedValue: tempSelectedPosition,
+                      onSelected: (value) {
+                        setDialogState(() {
+                          tempSelectedPosition = tempSelectedPosition == value ? null : value;
+                        });
+                      },
+                    ),
+                    _buildRatingFilter(
+                      selectedRating: tempMinRating,
+                      onSelected: (value) {
+                        setDialogState(() {
+                          tempMinRating = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
-                _buildFilterSection(
-                  title: 'Position',
-                  options: const ['Forward', 'Midfielder', 'Defender', 'Goalkeeper', 'Point Guard', 'Center'],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedSport = null;
+                      _selectedPosition = null;
+                      _minRating = null;
+                    });
+                    _filterPlayers();
+                  },
+                  child: const Text('Reset'),
                 ),
-                _buildFilterSection(
-                  title: 'Rating',
-                  options: const ['4+', '3+', '2+', '1+'],
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _selectedSport = tempSelectedSport;
+                      _selectedPosition = tempSelectedPosition;
+                      _minRating = tempMinRating;
+                    });
+                    _filterPlayers();
+                  },
+                  child: const Text('Apply'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Reset'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Apply'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildFilterSection({required String title, required List<String> options}) {
+  Widget _buildFilterSection({
+    required String title,
+    required List<String> options,
+    required String? selectedValue,
+    required Function(String) onSelected,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,9 +269,42 @@ class ScoutPlayersScreen extends StatelessWidget {
           children: options.map((option) {
             return FilterChip(
               label: Text(option),
-              selected: false,
+              selected: selectedValue == option,
               onSelected: (selected) {
-                // Handle filter selection
+                onSelected(option);
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildRatingFilter({
+    required double? selectedRating,
+    required Function(double?) onSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Minimum Rating',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [4.5, 4.0, 3.5, 3.0].map((rating) {
+            return FilterChip(
+              label: Text('$rating+'),
+              selected: selectedRating == rating,
+              onSelected: (selected) {
+                onSelected(selected ? rating : null);
               },
             );
           }).toList(),

@@ -89,6 +89,14 @@ try {
   console.error("❌ Error loading drillResultRoutes:", error.message);
 }
 
+try {
+  console.log("🔍 Loading tournamentRoutes...");
+  app.use("/api/tournaments", require("./routes/tournamentRoutes"));
+  console.log("✅ tournamentRoutes loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading tournamentRoutes:", error.message);
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

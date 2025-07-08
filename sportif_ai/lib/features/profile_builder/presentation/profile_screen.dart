@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:sportif_ai/core/models/user_model.dart';
 import 'package:sportif_ai/core/services/firebase_service.dart';
 import 'package:sportif_ai/features/auth/domain/auth_provider.dart';
+import 'package:sportif_ai/features/profile_builder/presentation/drill_history_screen.dart';
+import 'package:sportif_ai/routes/app_routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -506,6 +508,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: _isLoading
                       ? const CircularProgressIndicator()
                       : const Text('Update Profile'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    AppRoutes.navigateToDrillHistory(context);
+                  },
+                  icon: const Icon(Icons.history),
+                  label: const Text('View Drill History'),
                 ),
               ),
             ],

@@ -10,6 +10,9 @@ class Player {
   final PlayerAttributes attributes;
   final List<String> certificates;
   final String? imageUrl;
+  final String email;
+  final String phoneNumber;
+  final String age;
 
   Player({
     required this.name,
@@ -20,6 +23,9 @@ class Player {
     required this.attributes,
     required this.certificates,
     this.imageUrl,
+    required this.email,
+    required this.phoneNumber,
+    required this.age,
   });
 }
 
@@ -59,6 +65,9 @@ final List<Player> players = [
       'FIFA Youth Certificate',
       'Regional MVP 2024',
     ],
+    email: 'alex.johnson@example.com',
+    phoneNumber: '+1 (555) 123-4567',
+    age: '24',
   ),
   Player(
     name: 'Sarah Williams',
@@ -78,6 +87,9 @@ final List<Player> players = [
       'National Basketball Academy',
       'State Championship 2023',
     ],
+    email: 'sarah.williams@example.com',
+    phoneNumber: '+1 (555) 234-5678',
+    age: '22',
   ),
   Player(
     name: 'Michael Brown',
@@ -97,6 +109,9 @@ final List<Player> players = [
       'Elite Youth Program',
       'Best Midfielder Award',
     ],
+    email: 'michael.brown@example.com',
+    phoneNumber: '+1 (555) 345-6789',
+    age: '26',
   ),
   Player(
     name: 'Emma Davis',
@@ -116,6 +131,9 @@ final List<Player> players = [
       'ITF Junior Champion',
       'National Tennis Academy',
     ],
+    email: 'emma.davis@example.com',
+    phoneNumber: '+1 (555) 456-7890',
+    age: '21',
   ),
   Player(
     name: 'James Wilson',
@@ -134,5 +152,8 @@ final List<Player> players = [
     certificates: [
       'Regional All-Star',
     ],
+    email: 'james.wilson@example.com',
+    phoneNumber: '+1 (555) 567-8901',
+    age: '28',
   ),
 ];

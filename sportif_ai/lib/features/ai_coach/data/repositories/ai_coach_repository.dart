@@ -4,9 +4,8 @@ import 'package:sportif_ai/config/api_config.dart';
 import 'package:sportif_ai/features/ai_coach/domain/models/drill_result.dart';
 
 class AiCoachRepository {
-  final ApiConfig apiConfig;
-
-  AiCoachRepository({required this.apiConfig});
+  // No need for ApiConfig instance since we use static methods
+  AiCoachRepository();
 
   Future<bool> saveDrillResult(DrillResult drillResult) async {
     try {

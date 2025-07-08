@@ -7,10 +7,10 @@ class ApiConfig {
 
   // Base URLs for different environments
   // For local development on physical device, use your laptop's IP address
-  static const String localIpUrl = 'http://10.0.2.2:5000/api';
+  static const String localIpUrl = 'http://192.168.0.100:5000/api';
   
   // For emulator, use special emulator address
-  static const String emulatorUrl = 'http://10.0.2.2:5000/api';
+  static const String emulatorUrl = 'http://10.0.2.2:5000/api'; // Keep this for Android emulator
   
   // For production
   static const String productionUrl = 'https://your-production-server.com/api';
@@ -86,6 +86,9 @@ class ApiConfig {
   static String dietPlanEndpoint(String id) => '$_currentBaseUrl/diet-plan/$id';
   static String get mealLogsEndpoint => '$_currentBaseUrl/meal-log';
   static String userMealLogsEndpoint(String userId) => '$_currentBaseUrl/meal-log/$userId';
+  static String get tournamentsEndpoint => '$_currentBaseUrl/tournaments';
+  static String userTournamentsEndpoint(String userId) => '$_currentBaseUrl/tournaments/user/$userId';
+  static String tournamentEndpoint(String id) => '$_currentBaseUrl/tournaments/$id';
   
   // External API keys
   static const String spoonacularApiKey = "74fc91e015f447158111e37732cfc4b7";
