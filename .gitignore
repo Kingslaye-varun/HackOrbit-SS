@@ -1,0 +1,5 @@
+sportif_ai/backend/.env
+sportif_ai/android/app/google-services.json
+/sportif_ai/backend/node_modules
+sportif_ai/firebase.json
+sportif_ai/lib/firebase_options.dart
