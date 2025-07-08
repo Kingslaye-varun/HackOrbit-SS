@@ -93,6 +93,10 @@ class ApiConfig {
   // External API keys
   static const String spoonacularApiKey = "74fc91e015f447158111e37732cfc4b7";
   static String get spoonacularBaseUrl => 'https://api.spoonacular.com';
+  
+  // Gemini API key
+  static const String geminiApiKey = "AIzaSyCNTGHrpuPsqK24RBc6sqPnyw9MEvk5Mj0";
+  static String get geminiBaseUrl => 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
   // Timeout durations
   static const Duration connectionTimeout = Duration(seconds: 15);

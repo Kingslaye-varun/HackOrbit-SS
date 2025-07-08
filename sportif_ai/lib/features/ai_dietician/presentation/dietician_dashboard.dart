@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sportif_ai/core/models/user_model.dart';
 import 'package:sportif_ai/features/ai_dietician/domain/diet_plan_usecase.dart';
+import 'package:sportif_ai/features/ai_dietician/data/diet_repository.dart';
+import 'package:sportif_ai/core/services/gemini_api.dart';
 import 'package:sportif_ai/features/ai_dietician/presentation/meal_plan_screen.dart';
 import 'package:sportif_ai/features/auth/domain/auth_provider.dart';
 import 'package:sportif_ai/routes/app_routes.dart';
@@ -73,8 +75,184 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
     }
   }
 
-  void generatePlan() {
-    AppRoutes.navigateToMealPlan(context);
+  void generatePlan() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in')),
+        );
+        return;
+      }
+      
+      if (user.gender == null || user.age == null || user.weight == null || 
+          user.height == null || user.fitnessGoal == null || 
+          user.sport == null || user.activityLevel == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please complete your profile with all required information')),
+        );
+        return;
+      }
+      
+      // Create diet input from user profile
+      final dietInput = DietInput(
+        gender: user.gender!,
+        age: user.age!,
+        weight: user.weight!,
+        height: user.height!,
+        goal: user.fitnessGoal!,
+        sport: user.sport!,
+        activityLevel: user.activityLevel!,
+      );
+      
+      // Generate meal plan
+      final mealPlan = DietPlanUseCase().generate(dietInput);
+      setState(() {
+        _currentMealPlan = mealPlan;
+      });
+      
+      // Fetch meal suggestions using Gemini API
+      final api = GeminiAPI();
+      final meals = await api.getMealSuggestions(
+        user: user,
+        mealPlan: mealPlan,
+      );
+      
+      // Show meal suggestions dialog
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _isLoading 
+          ? const AlertDialog(
+              content: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Generating meal suggestions...'),
+                  ],
+                ),
+              ),
+            )
+          : AlertDialog(
+          title: const Text("Meal Suggestions"),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: meals.length,
+              itemBuilder: (context, index) {
+                final meal = meals[index];
+                
+                // Safe access to meal data
+                final title = meal['title']?.toString() ?? 'Unknown meal';
+                final description = meal['description']?.toString() ?? '';
+                final calories = meal['calories']?.toString() ?? '0';
+                final protein = meal['protein']?.toString() ?? '0';
+                final carbs = meal['carbs']?.toString() ?? '0';
+                final fat = meal['fat']?.toString() ?? '0';
+                final cost = meal['cost']?.toString() ?? 'Medium';
+                final prepTime = meal['preparation_time']?.toString() ?? '30 minutes';
+                final region = meal['region']?.toString() ?? 'India/Asia';
+                
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ExpansionTile(
+                    title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                      "🍽 $calories kcal | 💰 $cost | 🕒 $prepTime",
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (description.isNotEmpty) ...[                              
+                              Text(description),
+                              const SizedBox(height: 8),
+                            ],
+                            Text("Region: $region"),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Nutrition: 💪 ${protein}g protein | 🍞 ${carbs}g carbs | 🥑 ${fat}g fat",
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                PopupMenuButton<String>(
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add),
+                                        SizedBox(width: 8),
+                                        Text("Log Meal"),
+                                      ],
+                                    ),
+                                  ),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(value: 'Breakfast', child: Text('Breakfast')),
+                                    const PopupMenuItem(value: 'Lunch', child: Text('Lunch')),
+                                    const PopupMenuItem(value: 'Dinner', child: Text('Dinner')),
+                                    const PopupMenuItem(value: 'Snack', child: Text('Snack')),
+                                  ],
+                                  onSelected: (mealType) {
+                                    // Log meal to MongoDB
+                                    DietRepository().logMealToMongo(
+                                      userId: user.uid,
+                                      mealTitle: title,
+                                      calories: int.tryParse(calories) ?? 0,
+                                      protein: protein,
+                                      carbs: carbs,
+                                      fat: fat,
+                                      mealType: mealType,
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Meal logged as $mealType!")),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error generating meal plan: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -105,6 +283,12 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadUserMealPlan,
+            tooltip: 'Refresh nutrition data',
+          ),
+          IconButton(
+            icon: const Icon(Icons.restaurant_menu),
+            onPressed: generatePlan,
+            tooltip: 'Generate meal plan',
           ),
         ],
       ),
