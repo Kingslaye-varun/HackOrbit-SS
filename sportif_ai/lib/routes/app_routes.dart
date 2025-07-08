@@ -13,6 +13,7 @@ import 'package:sportif_ai/features/tournament_tracker/presentation/tournament-t
 import 'package:sportif_ai/features/Scout_players/scout_players.dart';
 import 'package:sportif_ai/features/Scout_players/player_details_screen.dart';
 import 'package:sportif_ai/features/Scout_players/player_model.dart';
+import 'package:sportif_ai/features/ai_coach/presentation/ai_coach_screen.dart';
 
 class AppRoutes {
   // Route names
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String chatbot = '/chatbot';
   static const String tournamentTracker = '/tournament-tracker';
   static const String scoutPlayers = '/scout-players';
+  static const String aiCoach = '/ai-coach';
 
   // Route map
   static Map<String, WidgetBuilder> getRoutes() {
@@ -44,6 +46,7 @@ class AppRoutes {
       chatbot: (context) => const GeminiNutritionChatbot(),
       tournamentTracker: (context) => const TournamentTrackerScreen(),
       scoutPlayers: (context) => const ScoutPlayersScreen(),
+      aiCoach: (context) => const AiCoachScreen(),
     };
   }
 
@@ -94,6 +97,10 @@ class AppRoutes {
   
   static void navigateToScoutPlayers(BuildContext context) {
     Navigator.pushNamed(context, scoutPlayers);
+  }
+  
+  static void navigateToAiCoach(BuildContext context) {
+    Navigator.pushNamed(context, aiCoach);
   }
   
   static void navigateToPlayerDetails(BuildContext context, Player player) {

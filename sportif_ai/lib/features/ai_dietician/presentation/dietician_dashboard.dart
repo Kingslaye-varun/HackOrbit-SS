@@ -73,6 +73,10 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
     }
   }
 
+  void generatePlan() {
+    AppRoutes.navigateToMealPlan(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -112,13 +116,6 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
           _buildProgressTab(user),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          AppRoutes.navigateToMealPlan(context);
-        },
-        child: const Icon(Icons.restaurant_menu),
-        tooltip: 'Create Meal Plan',
-      ),
     );
   }
 
@@ -135,193 +132,228 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.grey[200],
-                        backgroundImage: user.photoUrl != null
-                            ? NetworkImage(user.photoUrl!) as ImageProvider
-                            : null,
-                        child: user.photoUrl == null
-                            ? const Icon(Icons.person, size: 30)
-                            : null,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+          // User Profile Card
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.grey[200],
+                          backgroundImage: user.photoUrl != null
+                              ? NetworkImage(user.photoUrl!) as ImageProvider
+                              : null,
+                          child: user.photoUrl == null
+                              ? const Icon(Icons.person, size: 30)
+                              : null,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              user.sport ?? 'No sport selected',
-                              style: TextStyle(
-                                color: Colors.grey[600],
+                              Text(
+                                user.sport ?? 'No sport selected',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 32),
+                    if (!hasCompleteProfile)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning, color: Colors.amber),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Complete Your Profile',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Please complete your profile to get personalized diet recommendations.',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      AppRoutes.navigateToProfile(context);
+                                    },
+                                    child: const Text('Update Profile'),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const Divider(height: 32),
-                  if (!hasCompleteProfile)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
+                    if (hasCompleteProfile) ...[                    
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          const Icon(Icons.warning, color: Colors.amber),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Complete Your Profile',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Please complete your profile to get personalized diet recommendations.',
-                                ),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    AppRoutes.navigateToProfile(context);
-                                  },
-                                  child: const Text('Update Profile'),
-                                ),
-                              ],
-                            ),
-                          ),
+                          _buildStatCard('Age', '${user.age}', Icons.calendar_today),
+                          _buildStatCard('Height', '${user.height} cm', Icons.height),
+                          _buildStatCard('Weight', '${user.weight} kg', Icons.monitor_weight_outlined),
                         ],
                       ),
-                    ),
-                  if (hasCompleteProfile) ...[                    
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatCard('Age', '${user.age}', Icons.calendar_today),
-                        _buildStatCard('Height', '${user.height} cm', Icons.height),
-                        _buildStatCard('Weight', '${user.weight} kg', Icons.monitor_weight_outlined),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatCard('Gender', user.gender ?? 'N/A', Icons.person_outline),
-                        _buildStatCard('Diet', user.dietaryPreference ?? 'N/A', Icons.restaurant_menu),
-                        _buildStatCard('Goal', user.fitnessGoal ?? 'N/A', Icons.fitness_center),
-                      ],
-                    ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStatCard('Gender', user.gender ?? 'N/A', Icons.person_outline),
+                          _buildStatCard('Diet', user.dietaryPreference ?? 'N/A', Icons.restaurant_menu),
+                          _buildStatCard('Goal', user.fitnessGoal ?? 'N/A', Icons.fitness_center),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
+          
           const SizedBox(height: 24),
-          const Text(
-            'Daily Nutrition',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (_currentMealPlan != null) ...[            
-            _buildNutritionCard('Calories', '${_currentMealPlan!.calories.toInt()} kcal', Colors.orange),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildNutritionCard('Protein', '${_currentMealPlan!.protein.toInt()} g', Colors.red),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildNutritionCard('Carbs', '${_currentMealPlan!.carbs.toInt()} g', Colors.green),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildNutritionCard('Fats', '${_currentMealPlan!.fats.toInt()} g', Colors.blue),
-                ),
-              ],
+          
+          // Daily Nutrition Section
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ] else
-            Card(
+            child: Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.no_food, size: 48, color: Colors.grey),
-                    const SizedBox(height: 8),
                     const Text(
-                      'No meal plan available',
-                      style: TextStyle(fontSize: 16),
+                      'Daily Nutrition',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        AppRoutes.navigateToMealPlan(context);
-                      },
-                      child: const Text('Create Meal Plan'),
-                    ),
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (_currentMealPlan != null) ...[            
+                      _buildNutritionCard('Calories', '${_currentMealPlan!.calories.toInt()} kcal', Colors.orange),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildNutritionCard('Protein', '${_currentMealPlan!.protein.toInt()} g', Colors.red),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildNutritionCard('Carbs', '${_currentMealPlan!.carbs.toInt()} g', Colors.green),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildNutritionCard('Fats', '${_currentMealPlan!.fats.toInt()} g', Colors.blue),
+                          ),
+                        ],
+                      ),
+                    ] else
+                      Column(
+                        children: [
+                          const Icon(Icons.no_food, size: 48, color: Colors.grey),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'No meal plan available',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
             ),
+          ),
+          
+          // Generate Meal Plan Button
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: generatePlan,
+              child: const Text("Generate Meal Plan"),
+            ),
+          ),
           const SizedBox(height: 24),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reminders',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Hydration Reminders'),
-                    subtitle: const Text('Drink water throughout the day'),
-                    value: user.hydrationReminder,
-                    onChanged: (bool value) {
-                      // This would be handled in a real app by updating the user profile
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Update your preferences in the profile screen')),
-                      );
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Meal Reminders'),
-                    subtitle: const Text('Don\'t miss your scheduled meals'),
-                    value: user.mealReminder,
-                    onChanged: (bool value) {
-                      // This would be handled in a real app by updating the user profile
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Update your preferences in the profile screen')),
-                      );
-                    },
-                  ),
-                ],
+          
+          // Reminders Section
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Reminders',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('Hydration Reminders'),
+                      subtitle: const Text('Drink water throughout the day'),
+                      value: user.hydrationReminder,
+                      onChanged: (bool value) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Update your preferences in the profile screen')),
+                        );
+                      },
+                    ),
+                    SwitchListTile(
+                      title: const Text('Meal Reminders'),
+                      subtitle: const Text('Don\'t miss your scheduled meals'),
+                      value: user.mealReminder,
+                      onChanged: (bool value) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Update your preferences in the profile screen')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -343,26 +375,34 @@ class _DieticianDashboardState extends State<DieticianDashboard> with SingleTick
           const SizedBox(height: 16),
           // This would be populated with actual meal plan data in a real app
           for (var i = 0; i < 7; i++)
-            Card(
+            Container(
               margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getDayName(i),
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const Divider(),
-                    _buildMealRow('Breakfast', 'Oatmeal with fruits', '300 kcal'),
-                    const Divider(),
-                    _buildMealRow('Lunch', 'Grilled chicken salad', '450 kcal'),
-                    const Divider(),
-                    _buildMealRow('Dinner', 'Salmon with vegetables', '500 kcal'),
-                    const Divider(),
-                    _buildMealRow('Snack', 'Greek yogurt with nuts', '200 kcal'),
-                  ],
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getDayName(i),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const Divider(),
+                      _buildMealRow('Breakfast', 'Oatmeal with fruits', '300 kcal'),
+                      const Divider(),
+                      _buildMealRow('Lunch', 'Grilled chicken salad', '450 kcal'),
+                      const Divider(),
+                      _buildMealRow('Dinner', 'Salmon with vegetables', '500 kcal'),
+                      const Divider(),
+                      _buildMealRow('Snack', 'Greek yogurt with nuts', '200 kcal'),
+                    ],
+                  ),
                 ),
               ),
             ),

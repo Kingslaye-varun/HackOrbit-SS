@@ -51,6 +51,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +269,9 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: FontAwesomeIcons.robot,
           color: const Color(0xFF6A5ACD),
           label: 'AI Coach',
+          onTap: () {
+            AppRoutes.navigateToAiCoach(context);
+          },
         ),
         _buildFeatureButton(
           icon: FontAwesomeIcons.dumbbell,
@@ -283,27 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         _buildFeatureButton(
-          icon: FontAwesomeIcons.appleAlt,
-          color: const Color(0xFF32CD32),
-          label: 'AI Nutritionist',
-          onTap: () {
-            AppRoutes.navigateToDieticianDashboard(context);
-          },
-        ),
-        _buildFeatureButton(
           icon: FontAwesomeIcons.tint,
           color: const Color(0xFF1E90FF),
           label: 'Hydration Tracker',
           onTap: () {
             AppRoutes.navigateToHydrationTracker(context);
-          },
-        ),
-        _buildFeatureButton(
-          icon: FontAwesomeIcons.calendarAlt,
-          color: const Color(0xFF9370DB),
-          label: 'Tournament Tracker',
-          onTap: () {
-            AppRoutes.navigateToTournamentTracker(context);
           },
         ),
         _buildFeatureButton(
@@ -313,6 +301,11 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () {
             AppRoutes.navigateToScoutPlayers(context);
           },
+        ),
+        _buildFeatureButton(
+          icon: FontAwesomeIcons.medal,
+          color: const Color(0xFFFFD700),
+          label: 'Achievements',
         ),
       ],
     );
@@ -446,14 +439,34 @@ class _HomeScreenState extends State<HomeScreen> {
       showSelectedLabels: true,
       showUnselectedLabels: true,
       type: BottomNavigationBarType.fixed,
+      currentIndex: _currentIndex,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-        BottomNavigationBarItem(icon: Icon(Icons.edit), label: 'Edit Details'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(FontAwesomeIcons.appleAlt),
+          label: 'AI Nutritionist',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(FontAwesomeIcons.calendarAlt),
+          label: 'Tournament Tracker',
+        ),
       ],
       onTap: (index) {
-        if (index == 2) { // Profile tab
-          AppRoutes.navigateToProfile(context);
+        setState(() {
+          _currentIndex = index;
+        });
+        
+        if (index == 0) {
+          // Home tab - already on home screen
+        } else if (index == 1) {
+          // AI Nutritionist tab
+          AppRoutes.navigateToDieticianDashboard(context);
+        } else if (index == 2) {
+          // Tournament Tracker tab
+          AppRoutes.navigateToTournamentTracker(context);
         }
       },
     );

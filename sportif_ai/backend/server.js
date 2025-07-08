@@ -81,6 +81,14 @@ try {
   console.error("❌ Error loading userRoutes:", error.message);
 }
 
+try {
+  console.log("🔍 Loading drillResultRoutes...");
+  app.use("/api", require("./routes/drillResultRoutes"));
+  console.log("✅ drillResultRoutes loaded successfully");
+} catch (error) {
+  console.error("❌ Error loading drillResultRoutes:", error.message);
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
