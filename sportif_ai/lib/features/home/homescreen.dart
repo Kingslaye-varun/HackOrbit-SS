@@ -14,6 +14,7 @@ import 'package:sportif_ai/features/debug/network_debug_screen.dart';
 import 'package:sportif_ai/features/profile_builder/presentation/profile_screen.dart';
 import 'package:sportif_ai/features/tournament_tracker/presentation/tournament-tracker.dart';
 import 'package:sportif_ai/routes/app_routes.dart';
+import 'package:sportif_ai/features/achievements/presentation/achievements_screen.dart';
 // import 'package:sportif_ai/features/tournament_tracker/presentation/tournament_tracker_screen.dart';
 // Remove the duplicate main() function and SportifAIApp class
 void main() {
@@ -96,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               _buildMainFeaturesGrid(),
               const SizedBox(height: 20),
-              _buildUpcomingEvents(),
             ],
           ),
         ),
@@ -306,6 +306,14 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: FontAwesomeIcons.medal,
           color: const Color(0xFFFFD700),
           label: 'Achievements',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AchievementsScreen(),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -348,85 +356,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildUpcomingEvents() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Upcoming Events',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        const SizedBox(height: 10),
-        Card(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildEventItem(
-                  title: 'Regional Championship',
-                  date: 'July 15, 2025',
-                  time: '9:00 AM',
-                ),
-                const Divider(),
-                _buildEventItem(
-                  title: 'Training Camp',
-                  date: 'July 22, 2025',
-                  time: '8:00 AM',
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEventItem({
-    required String title,
-    required String date,
-    required String time,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E3192).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.event, color: Color(0xFF2E3192)),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  '$date • $time',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          IconButton(icon: const Icon(Icons.chevron_right), onPressed: () {}),
-        ],
       ),
     );
   }

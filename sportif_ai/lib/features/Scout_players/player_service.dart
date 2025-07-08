@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:sportif_ai/config/api_config.dart';
 import 'package:sportif_ai/features/Scout_players/player_model.dart';
@@ -10,13 +11,24 @@ class PlayerService {
   // Fetch all players from the backend
   Future<List<Player>> fetchPlayers() async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.usersEndpoint}');
+      final url = Uri.parse(ApiConfig.usersEndpoint);
+      print('Fetching players from: $url');
+      
       final response = await http.get(url)
-          .timeout(Duration(seconds: 10));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print('Successfully fetched players');
         final List<dynamic> data = json.decode(response.body);
-        return data.map((userData) => _convertUserToPlayer(userData)).toList();
+        final List<Player> fetchedPlayers = data.map((userData) => _convertUserToPlayer(userData)).toList();
+        
+        if (fetchedPlayers.isEmpty) {
+          print('No players found in the database, returning sample data');
+          return players;
+        }
+        
+        print('Converted ${fetchedPlayers.length} players from user data');
+        return fetchedPlayers;
       } else {
         print('Failed to load players: ${response.statusCode}');
         // Return sample data if API fails
@@ -34,41 +46,42 @@ class PlayerService {
     // Convert to UserModel first
     final user = UserModel.fromJson(userData);
     
-    // Generate random attributes for demo purposes
-    // In a real app, these would come from the backend
+    // Create a random number generator with a seed based on the user's uid
+    // This ensures the same user always gets the same random attributes
+    final random = Random(user.uid.hashCode);
+    
+    // Generate consistent attributes for this user
     final attributes = PlayerAttributes(
-      speed: _generateRandomStat(),
-      strength: _generateRandomStat(),
-      iq: _generateRandomStat(),
-      teamwork: _generateRandomStat(),
-      specialSkill: _getRandomSpecialSkill(user.sport),
+      speed: 60 + random.nextInt(36),
+      strength: 60 + random.nextInt(36),
+      iq: 60 + random.nextInt(36),
+      teamwork: 60 + random.nextInt(36),
+      specialSkill: _getRandomSpecialSkill(user.sport, random),
     );
 
     // Generate a position based on the sport
-    final position = _getPositionForSport(user.sport);
+    final position = _getPositionForSport(user.sport, random);
+    
+    // Calculate overall rating based on attributes
+    final overallRating = (3.5 + (attributes.speed + attributes.strength + attributes.iq + attributes.teamwork) / 400).clamp(3.0, 5.0);
     
     return Player(
       name: user.name,
       sport: user.sport ?? 'Unknown Sport',
       position: position,
       role: _getRoleForPosition(position),
-      overallRating: (3.5 + (attributes.speed + attributes.strength + attributes.iq + attributes.teamwork) / 400).clamp(3.0, 5.0),
+      overallRating: overallRating,
       attributes: attributes,
-      certificates: _generateRandomCertificates(user.sport),
+      certificates: _generateRandomCertificates(user.sport, random),
       imageUrl: user.photoUrl,
       email: user.email,
-      phoneNumber: user.phoneNumber ?? 'No phone provided',
+      phoneNumber: user.phoneNumber,
       age: user.age != null ? user.age.toString() : 'Unknown',
     );
   }
 
-  // Generate a random stat between 60-95
-  int _generateRandomStat() {
-    return 60 + (DateTime.now().millisecondsSinceEpoch % 36);
-  }
-
   // Get a random special skill based on sport
-  String? _getRandomSpecialSkill(String? sport) {
+  String? _getRandomSpecialSkill(String? sport, Random random) {
     if (sport == null) return null;
     
     final Map<String, List<String>> sportSkills = {
@@ -80,11 +93,11 @@ class PlayerService {
     };
     
     final skills = sportSkills[sport] ?? ['Athletic'];
-    return skills[DateTime.now().millisecondsSinceEpoch % skills.length];
+    return skills[random.nextInt(skills.length)];
   }
 
   // Get position based on sport
-  String _getPositionForSport(String? sport) {
+  String _getPositionForSport(String? sport, Random random) {
     if (sport == null) return 'Player';
     
     final Map<String, List<String>> sportPositions = {
@@ -96,7 +109,7 @@ class PlayerService {
     };
     
     final positions = sportPositions[sport] ?? ['Player'];
-    return positions[DateTime.now().millisecondsSinceEpoch % positions.length];
+    return positions[random.nextInt(positions.length)];
   }
 
   // Get role based on position
@@ -127,7 +140,7 @@ class PlayerService {
   }
 
   // Generate random certificates based on sport
-  List<String> _generateRandomCertificates(String? sport) {
+  List<String> _generateRandomCertificates(String? sport, Random random) {
     if (sport == null) return [];
     
     final Map<String, List<String>> sportCertificates = {
@@ -139,11 +152,15 @@ class PlayerService {
     };
     
     final certificates = sportCertificates[sport] ?? ['Sports Excellence Certificate'];
-    final numCertificates = 1 + (DateTime.now().millisecondsSinceEpoch % 2);
+    final numCertificates = 1 + random.nextInt(2); // 1 or 2 certificates
     final selectedCertificates = <String>[];
     
-    for (int i = 0; i < numCertificates && i < certificates.length; i++) {
-      selectedCertificates.add(certificates[i]);
+    // Shuffle the certificates list to get random ones
+    final shuffledCertificates = List<String>.from(certificates);
+    shuffledCertificates.shuffle(random);
+    
+    for (int i = 0; i < numCertificates && i < shuffledCertificates.length; i++) {
+      selectedCertificates.add(shuffledCertificates[i]);
     }
     
     return selectedCertificates;

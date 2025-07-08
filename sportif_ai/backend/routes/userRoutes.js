@@ -43,6 +43,19 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Get all users
+router.get("/", async (req, res) => {
+  try {
+    console.log('Fetching all users');
+    const users = await User.find({});
+    console.log(`Found ${users.length} users`);
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching all users:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get user by uid
 router.get("/:uid", async (req, res) => {
   try {
