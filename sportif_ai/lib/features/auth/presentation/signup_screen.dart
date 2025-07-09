@@ -81,7 +81,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Sign up to get started with SportAI',
+                  'Sign up to get started with SportifAI',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),

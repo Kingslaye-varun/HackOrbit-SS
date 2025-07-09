@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   height: 4,
                   margin: const EdgeInsets.only(top: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Colors.black,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -895,3 +895,5 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
     );
   }
 }
+
+

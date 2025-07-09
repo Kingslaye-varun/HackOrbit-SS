@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 // Logo and Title
                 const Text(
-                  'SportAI',
+                  'SportifAI',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
